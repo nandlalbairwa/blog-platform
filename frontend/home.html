@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Blogs</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo"> Blogs</div>
+
+  <input type="text" id="searchInput" placeholder="Search blogs..." class="search-bar" onkeyup="searchBlogs()">
+
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="write.html">Write</a>
+    <a href="#contact">Contact</a>
+    <span id="profileName" style="margin-left:15px; font-weight:600;"></span>
+    <a href="#" onclick="logout()" class="btn-small">Logout</a>
+    <a href="#" onclick="toggleDark()">🌙</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Share Your Ideas With The World</h1>
+    <p>Write. Publish. Inspire.</p>
+    <a href="write.html" class="cta-btn">Start Writing</a>
+  </div>
+</section>
+
+<section class="blogs-section">
+  <h2 class="section-title">Latest Blogs</h2>
+  <div class="blog-grid" id="blogs"></div>
+</section>
+
+<footer class="footer" id="contact">
+  <h3>Nandu Blogs</h3>
+  <p>Connect with us</p>
+  <div class="footer-links">
+    <a href="tel:+919999999999">📞 Call</a>
+    <a href="mailto:yourmail@gmail.com">📧 Email</a>
+    <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+    <a href="https://x.com" target="_blank">X</a>
+  </div>
+</footer>
+
+<script>
+const API = "http://localhost:5000/api/blogs";
+let allBlogs = [];
+const AUTH_API = "http://localhost:5000/api/auth";
+
+async function loadProfile(){
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    return;
+  }
+
+  const res = await fetch(AUTH_API + "/profile", {
+    headers:{
+      "Authorization": token
+    }
+  });
+
+  const user = await res.json();
+
+  document.getElementById("profileName").innerText = user.name;
+}
+
+loadProfile();
+
+async function loadBlogs(){
+  const res = await fetch(API);
+  allBlogs = await res.json();
+  displayBlogs(allBlogs);
+}
+
+function displayBlogs(blogs){
+  const blogDiv = document.getElementById("blogs");
+  blogDiv.innerHTML = "";
+
+  blogs.forEach(blog=>{
+    blogDiv.innerHTML += `
+      <div class="blog-card">
+        ${blog.image && blog.image !== null ? 
+  `<img src="http://localhost:5000/uploads/${blog.image}" class="blog-img" />` 
+  : ""}
+        <div class="blog-content">
+          <h3 onclick="openBlog('${blog._id}')" class="clickable">
+            ${blog.title}
+          </h3>
+          <p>${blog.content.substring(0,120)}...</p>
+          <small>By ${blog.author?.name || "Unknown"}</small>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function searchBlogs(){
+  const value = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = allBlogs.filter(blog =>
+    blog.title.toLowerCase().includes(value) ||
+    blog.content.toLowerCase().includes(value)
+  );
+
+  displayBlogs(filtered);
+}
+
+function openBlog(id){
+  window.location = "blog.html?id=" + id;
+}
+
+function toggleDarkMode(){
+  document.body.classList.toggle("dark-mode");
+  localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+}
+
+function logout(){
+  localStorage.removeItem("token");
+  window.location = "index.html";
+}
+
+// Load dark mode preference
+if(localStorage.getItem("darkMode") === "true"){
+  document.body.classList.add("dark-mode");
+}
+
+loadBlogs();
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+</script>
+</body>
+</html>

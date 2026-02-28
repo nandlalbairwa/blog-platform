@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Write Blog</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo"> Blogs</div>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="#" onclick="toggleDark()">🌙</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Create Something Amazing</h1>
+    <p>Share your thoughts with the world</p>
+  </div>
+</section>
+
+<div class="form-container">
+
+  <input type="text" id="title" placeholder="Blog Title">
+
+  <textarea id="content" rows="6" placeholder="Write your blog here..."></textarea>
+
+  <input type="file" id="image">
+
+  <br><br>
+
+  <button onclick="publishBlog()">Publish Blog</button>
+
+</div>
+
+<script>
+const API = "http://localhost:5000/api/blogs";
+
+async function publishBlog() {
+  const token = localStorage.getItem("token");
+
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const image = document.getElementById("image").files[0];
+
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("content", content);
+  formData.append("image", image);
+
+  await fetch("http://localhost:5000/api/blogs", {
+    method: "POST",
+    headers: {
+      "Authorization": token
+    },
+    body: formData
+  });
+
+  alert("Blog Published");
+  window.location = "home.html";
+}
+
+function logout(){
+  localStorage.removeItem("token");
+  window.location = "index.html";
+}
+
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>

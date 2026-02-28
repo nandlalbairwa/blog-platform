@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Write Blog</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="logo"> Blogs</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Write</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </nav>
+</header>
+
+<section class="hero small-hero">
+  <h1>Create a New Blog</h1>
+</section>
+
+<div class="dashboard-wrapper">
+  <div class="write-card">
+    <input id="title" placeholder="Blog Title">
+    <textarea id="content" placeholder="Write your content here..."></textarea>
+    <input type="file" id="image">
+    <button onclick="createBlog()">Publish Blog</button>
+  </div>
+</div>
+
+<section class="blog-container" id="blogs"></section>
+
+<script>
+const API = "http://localhost:5000/api/blogs";
+const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location = "login.html";
+}
+
+async function createBlog() {
+  const formData = new FormData();
+  formData.append("title", document.getElementById("title").value);
+  formData.append("content", document.getElementById("content").value);
+
+  const imageFile = document.getElementById("image").files[0];
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  await fetch(API, {
+    method: "POST",
+    headers: {
+      "Authorization": token
+    },
+    body: formData
+  });
+
+  document.getElementById("title").value = "";
+  document.getElementById("content").value = "";
+  document.getElementById("image").value = "";
+
+  loadBlogs();
+}
+
+async function loadBlogs() {
+  const res = await fetch(API);
+  const blogs = await res.json();
+
+  const blogDiv = document.getElementById("blogs");
+  blogDiv.innerHTML = "";
+
+  blogs.forEach(blog => {
+    blogDiv.innerHTML += `
+      <div class="blog-card">
+        ${blog.image ? `<img src="http://localhost:5000/uploads/${blog.image}">` : ""}
+        <div class="blog-content">
+          <h3>${blog.title}</h3>
+          <p>${blog.content.substring(0, 120)}...</p>
+          <small>By ${blog.author?.name || "Unknown"}</small>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location = "login.html";
+}
+
+loadBlogs();
+</script>
+
+</body>
+</html>
