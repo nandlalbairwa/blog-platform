@@ -32,6 +32,7 @@
 
 <section class="blogs-section">
   <h2 class="section-title">Latest Blogs</h2>
+  <div id="blogContainer"></div>
   <div class="blog-grid" id="blogs"></div>
 </section>
 
@@ -47,92 +48,36 @@
 </footer>
 
 <script>
-const API = "http://localhost:5000/api/blogs";
-let allBlogs = [];
-const AUTH_API = "http://localhost:5000/api/auth";
+async function loadBlogs() {
+  try {
+    const res = await fetch("http://localhost:5000/api/blogs");
+    const blogs = await res.json();
 
-async function loadProfile(){
-  const token = localStorage.getItem("token");
+    const container = document.getElementById("blogContainer");
+    container.innerHTML = "";
 
-  if(!token){
-    return;
+    blogs.forEach(blog => {
+      const div = document.createElement("div");
+      div.className = "blog-card";
+      div.innerHTML = `
+        <h2>${blog.title}</h2>
+        <p>${blog.content}</p>
+        <small>${new Date(blog.createdAt).toLocaleString()}</small>
+        <hr/>
+      `;
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
   }
-
-  const res = await fetch(AUTH_API + "/profile", {
-    headers:{
-      "Authorization": token
-    }
-  });
-
-  const user = await res.json();
-
-  document.getElementById("profileName").innerText = user.name;
 }
 
-loadProfile();
-
-async function loadBlogs(){
-  const res = await fetch(API);
-  allBlogs = await res.json();
-  displayBlogs(allBlogs);
-}
-
-function displayBlogs(blogs){
-  const blogDiv = document.getElementById("blogs");
-  blogDiv.innerHTML = "";
-
-  blogs.forEach(blog=>{
-    blogDiv.innerHTML += `
-      <div class="blog-card">
-        ${blog.image && blog.image !== null ? 
-  `<img src="http://localhost:5000/uploads/${blog.image}" class="blog-img" />` 
-  : ""}
-        <div class="blog-content">
-          <h3 onclick="openBlog('${blog._id}')" class="clickable">
-            ${blog.title}
-          </h3>
-          <p>${blog.content.substring(0,120)}...</p>
-          <small>By ${blog.author?.name || "Unknown"}</small>
-        </div>
-      </div>
-    `;
-  });
-}
-
-function searchBlogs(){
-  const value = document.getElementById("searchInput").value.toLowerCase();
-
-  const filtered = allBlogs.filter(blog =>
-    blog.title.toLowerCase().includes(value) ||
-    blog.content.toLowerCase().includes(value)
-  );
-
-  displayBlogs(filtered);
-}
-
-function openBlog(id){
-  window.location = "blog.html?id=" + id;
-}
-
-function toggleDarkMode(){
-  document.body.classList.toggle("dark-mode");
-  localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-}
-
-function logout(){
-  localStorage.removeItem("token");
-  window.location = "index.html";
-}
-
-// Load dark mode preference
-if(localStorage.getItem("darkMode") === "true"){
-  document.body.classList.add("dark-mode");
+function toggleDark() {
+  document.body.classList.toggle("dark");
 }
 
 loadBlogs();
-function toggleDark(){
-  document.body.classList.toggle("dark");
-}
 </script>
 </body>
 </html>

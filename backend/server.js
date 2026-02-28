@@ -6,7 +6,7 @@ require("dotenv").config();
 
 const app = express();
 
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -20,13 +20,23 @@ app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/admin", adminRoutes);
 
-// 👇 Static folder for images
+// Static folder for images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-// Server Start
-app.listen(5000, () => console.log("Server running on port 5000"));
+// Test Route (optional but useful)
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// ✅ Important for Render
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
