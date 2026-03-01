@@ -1,83 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title> Blogs</title>
+  <title>DevDiary</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<header class="navbar">
-  <div class="logo"> Blogs</div>
+<canvas id="particles"></canvas>
+<div class="cursor-glow"></div>
 
-  <input type="text" id="searchInput" placeholder="Search blogs..." class="search-bar" onkeyup="searchBlogs()">
-
-  <nav>
+<div class="navbar" id="navbar">
+  <div><strong>DevDiary</strong></div>
+  <div>
     <a href="home.html">Home</a>
     <a href="write.html">Write</a>
-    <a href="#contact">Contact</a>
-    <span id="profileName" style="margin-left:15px; font-weight:600;"></span>
-    <a href="#" onclick="logout()" class="btn-small">Logout</a>
-    <a href="#" onclick="toggleDark()">🌙</a>
-  </nav>
-</header>
-
-<section class="hero">
-  <div class="hero-content">
-    <h1>Share Your Ideas With The World</h1>
-    <p>Write. Publish. Inspire.</p>
-    <a href="write.html" class="cta-btn">Start Writing</a>
+    <a href="blog.html">Blog</a>
+     <a href="register.html">Register</a>
+    <a href="index.html">login</a>
+    <a href="profile.html">Profile</a>
+   
   </div>
-</section>
+</div>
 
-<section class="blogs-section">
-  <h2 class="section-title">Latest Blogs</h2>
+<div class="hero">
+  <h1>Share Your Ideas With The World</h1>
+  <p>Write,Publish,Inspire</p>
+</div>
+
+<div class="container">
+  <h2>Latest Blogs</h2>
   <div id="blogContainer"></div>
-  <div class="blog-grid" id="blogs"></div>
-</section>
-
-<footer class="footer" id="contact">
-  <h3>Nandu Blogs</h3>
-  <p>Connect with us</p>
-  <div class="footer-links">
-    <a href="tel:+919999999999">📞 Call</a>
-    <a href="mailto:yourmail@gmail.com">📧 Email</a>
-    <a href="https://linkedin.com" target="_blank">LinkedIn</a>
-    <a href="https://x.com" target="_blank">X</a>
-  </div>
-</footer>
+</div>
 
 <script>
-async function loadBlogs() {
-  try {
-    const res = await fetch("http://localhost:5000/api/blogs");
-    const blogs = await res.json();
 
-    const container = document.getElementById("blogContainer");
-    container.innerHTML = "";
+/* ===== Cursor Glow ===== */
+const glow = document.querySelector(".cursor-glow");
+document.addEventListener("mousemove", e => {
+  glow.style.left = e.clientX + "px";
+  glow.style.top = e.clientY + "px";
+});
 
-    blogs.forEach(blog => {
-      const div = document.createElement("div");
-      div.className = "blog-card";
-      div.innerHTML = `
-        <h2>${blog.title}</h2>
-        <p>${blog.content}</p>
-        <small>${new Date(blog.createdAt).toLocaleString()}</small>
-        <hr/>
-      `;
-      container.appendChild(div);
-    });
+/* ===== Navbar Shrink ===== */
+window.addEventListener("scroll", () => {
+  const navbar = document.getElementById("navbar");
+  navbar.classList.toggle("scrolled", window.scrollY > 50);
+});
 
-  } catch (err) {
-    console.error(err);
-  }
+/* ===== Simple Particle Background ===== */
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+for(let i=0;i<100;i++){
+  particles.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*2,
+    d: Math.random()*1
+  });
 }
 
-function toggleDark() {
-  document.body.classList.toggle("dark");
+function drawParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  particles.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2,true);
+    ctx.fill();
+  });
+  updateParticles();
+}
+
+function updateParticles(){
+  particles.forEach(p=>{
+    p.y += p.d;
+    if(p.y > canvas.height){
+      p.y = 0;
+      p.x = Math.random()*canvas.width;
+    }
+  });
+}
+
+setInterval(drawParticles, 30);
+
+/* ===== Load Blogs ===== */
+async function loadBlogs(){
+  const res = await fetch("/api/blogs");
+  const blogs = await res.json();
+
+  const container = document.getElementById("blogContainer");
+  container.innerHTML = "";
+
+  blogs.reverse().forEach(blog=>{
+    container.innerHTML += `
+      <div class="card">
+        <h3>${blog.title}</h3>
+        <p>${blog.content}</p>
+        ${blog.image ? `<img src="/uploads/${blog.image}">` : ""}
+        <div class="actions">
+          <button class="edit-btn" onclick="editBlog('${blog._id}')">✏ Edit</button>
+          <button class="delete-btn" onclick="deleteBlog('${blog._id}')">🗑 Delete</button>
+          <button class="like-btn" onclick="likeBlog('${blog._id}')">
+  ❤️ ${blog.likes ? blog.likes.length : 0}
+</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function editBlog(id){
+  window.location.href = "write.html?id=" + id;
+}
+
+async function deleteBlog(id){
+  await fetch(`/api/blogs/${id}`, { method:"DELETE" });
+  loadBlogs();
+}
+
+async function likeBlog(id){
+  await fetch(`/api/blogs/${id}/like`, { method:"PUT" });
+  loadBlogs();
 }
 
 loadBlogs();
+
 </script>
+
 </body>
 </html>

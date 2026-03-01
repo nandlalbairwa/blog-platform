@@ -3,93 +3,14 @@
 <head>
   <title>Profile</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="navbar">
-  <div class="logo">Blogs</div>
-  <nav>
-    <a href="home.html">Home</a>
-    <a href="write.html">Write</a>
-    <a href="profile.html">Profile</a>
-    <a href="#" onclick="logout()" class="btn-small">Logout</a>
-  </nav>
-</header>
-
-<section class="blogs-section">
-  <h2 class="section-title">My Profile</h2>
-
-  <div class="profile-card">
-    <h3 id="userName"></h3>
-    <p id="userEmail"></p>
-  </div>
-
-  <h2 class="section-title">My Blogs</h2>
-  <div class="blog-grid" id="myBlogs"></div>
-</section>
-
-<script>
-const API_AUTH = "http://localhost:5000/api/auth";
-const API_BLOG = "http://localhost:5000/api/blogs";
-const token = localStorage.getItem("token");
-
-if(!token){
-  window.location = "index.html";
-}
-
-// LOAD USER INFO
-async function loadUser(){
-  const res = await fetch(API_AUTH + "/me", {
-    headers: { "Authorization": token }
-  });
-
-  const user = await res.json();
-  document.getElementById("userName").innerText = user.name;
-  document.getElementById("userEmail").innerText = user.email;
-}
-
-// LOAD MY BLOGS
-async function loadMyBlogs(){
-  const res = await fetch(API_BLOG + "/myblogs", {
-    headers: { "Authorization": token }
-  });
-
-  const blogs = await res.json();
-  const blogDiv = document.getElementById("myBlogs");
-  blogDiv.innerHTML = "";
-
-  blogs.forEach(blog=>{
-    blogDiv.innerHTML += `
-      <div class="blog-card">
-        ${blog.image ? `<img src="http://localhost:5000/uploads/${blog.image}">` : ""}
-        <div class="blog-content">
-          <h3>${blog.title}</h3>
-          <p>${blog.content.substring(0,100)}...</p>
-          <button onclick="deleteBlog('${blog._id}')">Delete</button>
-        </div>
-      </div>
-    `;
-  });
-}
-
-async function deleteBlog(id){
-  await fetch(API_BLOG + "/" + id, {
-    method:"DELETE",
-    headers:{ "Authorization": token }
-  });
-  loadMyBlogs();
-}
-
-function logout(){
-  localStorage.removeItem("token");
-  window.location = "index.html";
-}
-
-loadUser();
-loadMyBlogs();
-</script>
+<div class="container">
+  <h2>User Profile</h2>
+  <p>Name: Demo User</p>
+  <p>Email: demo@email.com</p>
+</div>
 
 </body>
 </html>
